@@ -9,9 +9,13 @@ function getPicture($out, $delay = " --delay 2 "){
         passthru("fswebcam --no-overlay --png 2 --no-underlay --no-info --no-timestamp --no-title --no-shadow --no-banner --frames 1 --skip 10 --resolution 360x240 $delay --dev                                                                                                                                             ice /dev/video0 --save $out");
 }
 
+function writeAreaCencer(Framebuffer $f, $bg, $fg, $text, $y, $scale = 1){
+	writeArea($f, $bg, $fg, $text, (int)round(($f->getX() / 2) - ($f->getLength($text, $scale) / 2)), $y, $scale);
+}
+
 function writeArea(Framebuffer $f, $bg, $fg, $text, $x, $y, $scale = 1){
-        $f->fill($bg, $x, $y, $x + $f->getLength($text, $scale) + 1, $y + Framebuffer::FONT_HEIGHT * $scale + 1);
-        $f->writeText($fg, $text, $x + 1, $y + 1, $scale);
+    $f->fill($bg, $x, $y, $x + $f->getLength($text, $scale) + 1, $y + Framebuffer::FONT_HEIGHT * $scale + 1);
+    $f->writeText($fg, $text, $x + 1, $y + 1, $scale);
 }
 
 function initScreen(){
@@ -100,33 +104,70 @@ function rgb24_to_rgb16($r, $g, $b){
 function rgb_to_rgb24($r, $g, $b){
 
 }
-
-function paintImage(Framebuffer $f, $image, $scale = 1, $center = [0, 0]){
+function imageToArray($image, $all = true){
         $im = new \Imagick($image);
         //$im->setImageBackgroundColor(new \ImagickPixel('white'));
         $it = $im->getPixelIterator();
 
+		$array = [];
 
+        foreach ($it as $row => $pixels) { /* Loop through pixel rows */
+			$array[$row] = [];
+			foreach ($pixels as $column => $pixel) { /* Loop through the pixels in the row (columns) */
+				$c = $pixel->getColor(false);
+				if($all){
+					$array[$row][$column] = $c["a"] !== 1 ? null : pack("v", rgb24_to_rgb16($c["r"], $c["g"], $c["b"]));
+				}else if($c["a"] === 1){
+					$array[$row][$column] = pack("v", rgb24_to_rgb16($c["r"], $c["g"], $c["b"]));
+				}
+			}
+			$it->syncIterator(); /* Sync the iterator, this is important to do on each iteration */
+		}
+    return $array;
+}
+
+function paintArray(Framebuffer $f, array $image, $scale = 1, $center = [0, 0]){
         if($center === true){
-                $startColumn = (int) round(($f->getX() - $im->getImageWidth() * $scale) / 2);
-                $startRow = (int) round(($f->getY() - $im->getImageHeight() * $scale) / 2);
+                $startColumn = (int) round(($f->getX() - count($image[0]) * $scale) / 2);
+                $startRow = (int) round(($f->getY() - count($image) * $scale) / 2);
         }else{
 			$startColumn = $center[0];
 			$startRow = $center[1];
 		}
-        foreach ($it as $row => $pixels) { /* Loop through pixel rows */
-        foreach ($pixels as $column => $pixel) { /* Loop through the pixels in the row (columns) */
-            $c = $pixel->getColor(false);
-            //var_dump(str_pad(decbin(rgb24_to_rgb16($c["r"], $c["g"], $c["b"])), 16, "0", STR_PAD_LEFT));
+        foreach ($image as $row => $pixels) { /* Loop through pixel rows */
+			foreach ($pixels as $column => $pixel) { /* Loop through the pixels in the row (columns) */
+				if($pixel === null){
+					continue;
+				}
                 for($x = 0; $x < $scale; ++$x){
-                        for($y = 0; $y < $scale; ++$y){
-                                $f->pixel(pack("v", rgb24_to_rgb16($c["r"], $c["g"], $c["b"])), $startColumn + ($column * $scale) + $x, $startRow + ($row * $scale) + $y);
-                        }
+                    for($y = 0; $y < $scale; ++$y){
+                        $f->pixel($pixel, $startColumn + ($column * $scale) + $x, $startRow + ($row * $scale) + $y);
+                    }
                 }
-        }
-        $it->syncIterator(); /* Sync the iterator, this is important to do on each iteration */
-    }
-    $f->flush();
+			}
+		}
+}
+
+function maskArray(Framebuffer $f, array $image, $mask, $scale = 1, $center = [0, 0]){
+        if($center === true){
+                $startColumn = (int) round(($f->getX() - count($image[0]) * $scale) / 2);
+                $startRow = (int) round(($f->getY() - count($image) * $scale) / 2);
+        }else{
+			$startColumn = $center[0];
+			$startRow = $center[1];
+		}
+        foreach ($image as $row => $pixels) { /* Loop through pixel rows */
+			foreach ($pixels as $column => $pixel) { /* Loop through the pixels in the row (columns) */
+				if($pixel === null){
+					continue;
+				}
+                for($x = 0; $x < $scale; ++$x){
+                    for($y = 0; $y < $scale; ++$y){
+                        $f->pixel($mask, $startColumn + ($column * $scale) + $x, $startRow + ($row * $scale) + $y);
+                    }
+                }
+			}
+		}
 }
 
 initScreen();
@@ -147,13 +188,92 @@ $f->loadFont("font.php");
 $b = $f->getColor(Framebuffer::COLOR_BLACK);
 $w = $f->getColor(Framebuffer::COLOR_WHITE);
 
+$state = [
+	"size" => 3, // 1, 2, 3, 4
+	"nib_stage" => 1, //0, 1, 2	
+	"face" => [
+		"hidden" => false,
+		"level" => 3, //1, 2, 3, 4, 5
+		"blush" => true,
+		"eyes" => "middle_up", // <middle|left|right>_<up|down>
+	],
+	
+	"toppings" => [
+		"cover" => "icing_pink", // null, choco_dark, choco_milk, icing_pink
+		"sprinkles" => "color", // null, choco, color
+	],
+];
+
+$assets = [];
+
+function getAsset($name){
+	global $assets;
+	if(!isset($assets[$name])){
+		$assets[$name] = imageToArray("imgs/{$name}.png");
+	}
+	return $assets[$name];
+}
+
+function composeDonut(Framebuffer $f, $state){
+	$center = true;
+	
+	$f->fill($f->getColor(Framebuffer::COLOR_WHITE), 0, 0, $f->getX(), $f->getY());
+	
+	paintArray($f, getAsset("base"), $state["size"], $center);
+	
+	if($state["nib_stage"] > 0){
+		paintArray($f, getAsset("nib_stage" . $state["nib_stage"]), $state["size"], $center);
+	}
+	
+	if($state["toppings"]["cover"] !== null){
+		paintArray($f, getAsset("topping_" . $state["toppings"]["cover"]), $state["size"], $center);
+	}
+	
+	if($state["toppings"]["sprinkles"] !== null){
+		paintArray($f, getAsset("topping_sprinkles_" . $state["toppings"]["sprinkles"]), $state["size"], $center);
+	}
+	
+	if($state["nib_stage"] > 0){
+		maskArray($f, getAsset("nib_stage" . $state["nib_stage"] . "_mask"), $f->getColor(Framebuffer::COLOR_WHITE), $state["size"], $center);
+	}
+	
+	if(!$state["face"]["hidden"]){
+		paintArray($f, getAsset("face_level" . $state["face"]["level"]), $state["size"], $center);
+		paintArray($f, getAsset("face_eyes_" . $state["face"]["eyes"]), $state["size"], $center);
+		if($state["face"]["blush"]){
+			paintArray($f, getAsset("face_blush"), $state["size"], $center);	
+		}
+	}
+}
+
+
 while(true){
 	$touch = readTouchEvent($f);
-	$f->fill($b, 0, 0, $f->getX(), $f->getY());
+	$face = "middle_up";
 	if($touch !== null){
-		$f->fill($w, $touch[0] - 2, $touch[1] - 2, $touch[0] + 2, $touch[1] + 2);
-		var_dump($touch);
+		if($touch[0] < ($f->getX() / 3)){
+			$face = "left_";
+		}else if($touch[0] < ($f->getX() / 3) * 2){
+			$face = "middle_";
+		}else{
+			$face = "right_";
+		}
+		
+		if($touch[1] < ($f->getY() / 2)){
+			$face .= "up";
+		}else{
+			$face .= "down";
+		}
+		
+		$state["face"]["eyes"] = $face;
 	}
+	composeDonut($f, $state);
+	
+	if($touch !== null){
+		$f->fill($b, $touch[0] - 2, $touch[1] - 2, $touch[0] + 2, $touch[1] + 2);
+	}
+	
+	writeAreaCencer($f, $w, $b, "be gentle senpai", 200, 1);
 	$f->flush();
 	//sleep(1);
 }
