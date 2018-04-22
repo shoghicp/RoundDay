@@ -626,6 +626,23 @@ $stages = [
 
 $currentStage = 0;
 
+paintArray($f, getAsset("intro"));
+$f->flush();
+
+readTouchEvent($f);
+$lastTouch = null;
+do{
+	$touch = readTouchEvent($f);
+	if($touch !== null){
+		$lastTouch = $touch;
+	}
+	if($touch === null and $lastTouch !== null){
+		$lastTouch = null;
+		break;
+	}
+	usleep(50000);
+}while(true);
+
 do{
 	readTouchEvent($f);
 	$lastTouch = null;
