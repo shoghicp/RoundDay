@@ -252,6 +252,7 @@ function generateNewState($validIcings, $validSprinkles, $validEyebrows){
 		"current_tick" => 0,
 		"size" => 1, // 1, 2, 3, 4
 		"nib_stage" => 0, //0, 1, 2, 3
+		"happiness" => 0,
 		"face" => [
 			"hidden" => false,
 			"level" => mt_rand(1, 5), //1, 2, 3, 4, 5
@@ -560,6 +561,9 @@ function composeDonut(Framebuffer $f, $state, $animationStage, $center = true){
 		if($state["dialog"] !== null){
 			writeAreaCenter($f, $f->getColor(Framebuffer::COLOR_WHITE), $f->getColor(Framebuffer::COLOR_BLACK), $state["dialog"], 220, 1);		
 		}
+		if($center){
+			writeArea($f, $f->getColor(Framebuffer::COLOR_WHITE), $f->getColor(Framebuffer::COLOR_BLACK), (string)$state["happiness"], 5, 30, 2);	
+		}
 		return $area;
 	}
 	
@@ -586,19 +590,25 @@ function alterDonutState($action, &$state, $stage){
 		if($stage["hearts_when_loved"]){
 			$state["effect"] = "heart_animated_mixed";
 		}
-	}else if(in_array($action, $stage["hates"]) and $lastTick !== $state["current_tick"]){
+		$state["happiness"] += 20;
+	}else if(in_array($action, $stage["hates"])){
 		$state["face"]["level"] = max($stage["min_face"], min($stage["max_face"], $state["face"]["level"] - 1));
-		if(count($stage["phrases"]["hates"]) > 0){
+		if(count($stage["phrases"]["hates"]) > 0 and $lastTick !== $state["current_tick"]){
 			$state["dialog"] = $stage["phrases"]["hates"][mt_rand(0, count($stage["phrases"]["hates"]) - 1)];
 		}
 		
-		if($stage["hearts_when_loved"]){
+		if($stage["hearts_when_loved"] and $lastTick !== $state["current_tick"]){
 			$state["effect"] = $stage["hearts"] ? "single_heart_animated" : null;
 		}
-	}else if ($lastTick !== $state["current_tick"]){
+		if($state["happiness"] >= 100 and $state["happiness"] < 115){
+			$state["effect"] = $stage["hearts"] ? "single_heart_animated" : null;
+		}
+		$state["happiness"] -= 15;
+	}else if ($lastTick !== $state["current_tick"] and $lastTick !== $state["current_tick"]){
 		if(count($stage["phrases"]["neutral"]) > 0){
 			$state["dialog"] = $stage["phrases"]["neutral"][mt_rand(0, count($stage["phrases"]["neutral"]) - 1)];
-		}		
+		}
+		$state["happiness"] += mt_rand(-5, 5);
 	}
 	
 	if($action === "eat"){
@@ -608,6 +618,10 @@ function alterDonutState($action, &$state, $stage){
 		if(count($stage["phrases"]["eat"]) > 0){
 			$state["dialog"] = $stage["phrases"]["eat"][mt_rand(0, count($stage["phrases"]["eat"]) - 1)];
 		}
+	}
+	
+	if($state["happiness"] >= 100){
+		$state["effect"] = "heart_animated_mixed";
 	}
 	
 	$lastTick = $state["current_tick"];
@@ -658,6 +672,7 @@ do{
 		"current_tick" => 0,
 		"size" => 1, // 1, 2, 3, 4
 		"nib_stage" => 0, //0, 1, 2, 3
+		"happiness" => 0,
 		"face" => [
 			"hidden" => false,
 			"level" => $stage["start_face"],
@@ -839,6 +854,7 @@ do{
 		}
 		
 		
+		
 		$f->flush();
 		
 
@@ -848,7 +864,12 @@ do{
 		usleep(1000000 / $ticksPerSecond);
 	}
 	
+	$f->fill($f->getColor(Framebuffer::COLOR_WHITE), 0, 0, $f->getX(), $f->getY());
+	writeAreaCenter($f, $f->getColor(Framebuffer::COLOR_WHITE), $f->getColor(Framebuffer::COLOR_BLACK), "Happiness", 60, 4);	
+	writeAreaCenter($f, $f->getColor(Framebuffer::COLOR_WHITE), $f->getColor(Framebuffer::COLOR_BLACK), (string)$state["happiness"], 100, 5);
+	$f->flush();
+	
 	++$currentStage;
-	sleep(2);
+	sleep(3);
 }while(true);
 
