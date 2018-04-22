@@ -373,10 +373,10 @@ function generateDonutFeelings($validLikes, $validActs, $name = ""){
 		
 		$blushWhenLove = true;
 		$blushWhenEat = true;
-		$heartsWhenLove = true;
 		
 		$phrases["loves"][] = "Please don't...";
 		$phrases["loves"][] = "Too close...";
+		$phrases["loves"][] = "I kinda like this...";
 		
 		$phrases["eat"][] = "Please be gentle senpai~~";
 		$phrases["eat"][] = "Ah! That's too hard...";
