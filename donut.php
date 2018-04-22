@@ -188,9 +188,62 @@ $f->loadFont("font.php");
 $b = $f->getColor(Framebuffer::COLOR_BLACK);
 $w = $f->getColor(Framebuffer::COLOR_WHITE);
 
+$validIcings = [null, "choco_dark", "choco_milk", "icing_pink"];
+$validSprinkles = [null, "choco", "color"];
+
+$effectSingleHearth = [["single_heart_1"]];
+$effectSingleHearthAnimated = [["single_heart_1"], ["single_heart_2"], ["single_heart_3"], ["single_heart_4"]];
+
+$effectHearthAnimated = [["heart_1"], ["heart_2"], ["heart_3"], ["heart_4"], ["heart_5"]]; //Can be shuffled (array_shuffle)
+
+
+$effectHearthMixedAnimated = [];
+
+for($i = 0; $i < 16; ++$i){
+	$hearts = [1, 2, 3, 4, 5];
+	
+	$number = mt_rand(0, 3);
+	
+	$entries = [];
+	for($j = 0; $j < $number; ++$j){
+		$e = mt_rand(0, count($hearts) - 1);
+		$entries[$hearts[$e]] = $hearts[$e];
+	}
+	$e = [];
+	foreach($entries as $h){
+		$e[] = $h;
+	}
+	$effectHearthMixedAnimated[] = $e;
+}
+
+$effects = [
+	"single_heart" => [
+		"shuffle" => false,
+		"data" => $effectSingleHearth,
+	],
+	"single_heart_animated" => [
+		"shuffle" => false,
+		"data" => $effectSingleHearthAnimated,
+	],
+	
+	"heart_animated" => [
+		"shuffle" => true,
+		"data" => $effectHearthAnimated,
+	],
+	
+	"heart_animated_mixed" => [
+		"shuffle" => true,
+		"data" => $effectHearthMixedAnimated,
+	],
+];
+
+$maxSize = 3;
+$maxFaceLevel = 5;
+
 $state = [
-	"size" => 3, // 1, 2, 3, 4
-	"nib_stage" => 1, //0, 1, 2	
+	"current_tick" => 0,
+	"size" => 1, // 1, 2, 3, 4
+	"nib_stage" => 0, //0, 1, 2, 3
 	"face" => [
 		"hidden" => false,
 		"level" => 3, //1, 2, 3, 4, 5
@@ -203,7 +256,8 @@ $state = [
 		"sprinkles" => "color", // null, choco, color
 	],
 	
-	"dialog" => null, // TODO: heart, ???
+	"effect" => "single_heart_animated", //anything from $effects or null
+	"dialog" => null, //TODO
 ];
 
 $assets = [];
@@ -216,38 +270,59 @@ function getAsset($name){
 	return $assets[$name];
 }
 
-function composeDonut(Framebuffer $f, $state){
+function composeDonut(Framebuffer $f, $state, $animationStage){
 	$center = true;
 	
 	$f->fill($f->getColor(Framebuffer::COLOR_WHITE), 0, 0, $f->getX(), $f->getY());
 	
-	paintArray($f, getAsset("base"), $state["size"], $center);
-	
-	if($state["nib_stage"] > 0){
-		paintArray($f, getAsset("nib_stage" . $state["nib_stage"]), $state["size"], $center);
-	}
-	
-	if($state["toppings"]["cover"] !== null){
-		paintArray($f, getAsset("topping_" . $state["toppings"]["cover"]), $state["size"], $center);
-	}
-	
-	if($state["toppings"]["sprinkles"] !== null){
-		paintArray($f, getAsset("topping_sprinkles_" . $state["toppings"]["sprinkles"]), $state["size"], $center);
-	}
-	
-	if($state["nib_stage"] > 0){
-		maskArray($f, getAsset("nib_stage" . $state["nib_stage"] . "_mask"), $f->getColor(Framebuffer::COLOR_WHITE), $state["size"], $center);
-	}
-	
-	if(!$state["face"]["hidden"]){
-		paintArray($f, getAsset("face_level" . $state["face"]["level"]), $state["size"], $center);
-		paintArray($f, getAsset("face_eyes_" . $state["face"]["eyes"]), $state["size"], $center);
-		if($state["face"]["blush"]){
-			paintArray($f, getAsset("face_blush"), $state["size"], $center);	
+	if($state["nib_stage"] <= 2){
+		paintArray($f, getAsset("base"), $state["size"], $center);
+		
+		if($state["nib_stage"] > 0){
+			paintArray($f, getAsset("nib_stage" . $state["nib_stage"]), $state["size"], $center);
+		}
+		
+		if($state["toppings"]["cover"] !== null){
+			paintArray($f, getAsset("topping_" . $state["toppings"]["cover"]), $state["size"], $center);
+		}
+		
+		if($state["toppings"]["sprinkles"] !== null){
+			paintArray($f, getAsset("topping_sprinkles_" . $state["toppings"]["sprinkles"]), $state["size"], $center);
+		}
+		
+		if($state["nib_stage"] > 0){
+			maskArray($f, getAsset("nib_stage" . $state["nib_stage"] . "_mask"), $f->getColor(Framebuffer::COLOR_WHITE), $state["size"], $center);
+		}
+		
+		if(!$state["face"]["hidden"] and $state["size"] > 1){
+			paintArray($f, getAsset("face_level" . $state["face"]["level"]), $state["size"], $center);
+			paintArray($f, getAsset("face_eyes_" . $state["face"]["eyes"]), $state["size"], $center);
+			if($state["face"]["blush"]){
+				paintArray($f, getAsset("face_blush"), $state["size"], $center);	
+			}
+		}
+		
+		if($state["effect"] !== null){
+			$value = $state[$state["effect"]];
+			if($value["shuffle"]){
+				$assets = $value["data"][mt_rand(0, count($value["data"]))];
+			}else{
+				$assets = $value["data"][$animationStage % count($value["data"])];
+			}
+			
+			foreach($assets as $asset){
+				paintArray($f, getAsset($asset), $state["size"], $center);
+			}
 		}
 	}
 }
 
+
+$ticksPerSecond = 5;
+
+$lastTouch = null;
+
+$animationStage = 0;
 
 while(true){
 	$touch = readTouchEvent($f);
@@ -270,8 +345,25 @@ while(true){
 		}
 		
 		$state["face"]["eyes"] = $face;
+		$lastTouch = $touch;
 	}
-	composeDonut($f, $state);
+	
+	if($touch === null and $lastTouch !== null){
+		//We selected
+		
+		$state["size"]++;
+		if($state["size"] > 4){
+			$state["size"] = 4;
+			$state["nib_stage"]++;
+			if($state["nib_stage"] > 3){
+				$state["size"] = 1;
+				$state["nib_stage"] = 0;
+			}
+		}
+		$lastTouch = null;
+	}
+	
+	composeDonut($f, $state, $animationStage);
 	
 	if($touch !== null){
 		$f->fill($b, $touch[0] - 2, $touch[1] - 2, $touch[0] + 2, $touch[1] + 2);
@@ -279,7 +371,11 @@ while(true){
 	
 	writeAreaCencer($f, $w, $b, "be gentle senpai", 200, 1);
 	$f->flush();
-	//sleep(1);
+	
+
+	$animationStage++;
+	
+	usleep(1000000 / $ticksPerSecond);
 }
 
 
