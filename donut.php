@@ -686,7 +686,7 @@ do{
 		$f->fill($f->getColor(Framebuffer::COLOR_WHITE), 0, 0, $f->getX(), $f->getY());
 		composeDonut($f, $state, $animationStage, [200, 100]);
 		foreach(explode("\r", $d) as $i => $line){
-			writeArea($f, $f->getColor(Framebuffer::COLOR_WHITE), $f->getColor(Framebuffer::COLOR_BLACK), $line, 20, 20 + 20 * $i, 1);
+			writeArea($f, $f->getColor(Framebuffer::COLOR_WHITE), $f->getColor(Framebuffer::COLOR_BLACK), $line, 20, 20 + 12 * $i, 1);
 		}
 		$f->flush();
 		
