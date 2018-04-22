@@ -191,10 +191,10 @@ $w = $f->getColor(Framebuffer::COLOR_WHITE);
 $validIcings = [null, "choco_dark", "choco_milk", "icing_pink"];
 $validSprinkles = [null, "choco", "color"];
 
-$effectSingleHearth = [["single_heart_1"]];
-$effectSingleHearthAnimated = [["single_heart_1"], ["single_heart_2"], ["single_heart_3"], ["single_heart_4"]];
+$effectSingleHearth = [["single_heart1"]];
+$effectSingleHearthAnimated = [["single_heart1"], ["single_heart2"], ["single_heart3"], ["single_heart4"]];
 
-$effectHearthAnimated = [["heart_1"], ["heart_2"], ["heart_3"], ["heart_4"], ["heart_5"]]; //Can be shuffled (array_shuffle)
+$effectHearthAnimated = [["heart1"], ["heart2"], ["heart3"], ["heart4"], ["heart5"]]; //Can be shuffled (array_shuffle)
 
 
 $effectHearthMixedAnimated = [];
@@ -202,7 +202,7 @@ $effectHearthMixedAnimated = [];
 for($i = 0; $i < 16; ++$i){
 	$hearts = [1, 2, 3, 4, 5];
 	
-	$number = mt_rand(0, 3);
+	$number = mt_rand(1, 4);
 	
 	$entries = [];
 	for($j = 0; $j < $number; ++$j){
@@ -211,7 +211,7 @@ for($i = 0; $i < 16; ++$i){
 	}
 	$e = [];
 	foreach($entries as $h){
-		$e[] = $h;
+		$e[] = "heart" . $h;
 	}
 	$effectHearthMixedAnimated[] = $e;
 }
@@ -246,14 +246,16 @@ $state = [
 	"nib_stage" => 0, //0, 1, 2, 3
 	"face" => [
 		"hidden" => false,
-		"level" => 3, //1, 2, 3, 4, 5
-		"blush" => true,
+		"level" => 4,//mt_rand(1, 5), //1, 2, 3, 4, 5
+		//TODO: special V and ^ face
+		"blush" => true,//(bool)mt_rand(0, 1),
 		"eyes" => "middle_up", // <left|middle|right>_<up|middle|down>
+		"eyebrows" => "calm", // null, angry, calm, neutral
 	],
 	
 	"toppings" => [
-		"cover" => "icing_pink", // null, choco_dark, choco_milk, icing_pink
-		"sprinkles" => "color", // null, choco, color
+		"cover" => "choco_milk",//$validIcings[mt_rand(0, count($validIcings) - 1)], // null, choco_dark, choco_milk, icing_pink
+		"sprinkles" => "color",$validSprinkles[mt_rand(0, count($validSprinkles) - 1)], // null, choco, color
 	],
 	
 	"effect" => "single_heart_animated", //anything from $effects or null
@@ -271,6 +273,7 @@ function getAsset($name){
 }
 
 function composeDonut(Framebuffer $f, $state, $animationStage){
+	global $effects;
 	$center = true;
 	
 	$f->fill($f->getColor(Framebuffer::COLOR_WHITE), 0, 0, $f->getX(), $f->getY());
@@ -300,12 +303,15 @@ function composeDonut(Framebuffer $f, $state, $animationStage){
 			if($state["face"]["blush"]){
 				paintArray($f, getAsset("face_blush"), $state["size"], $center);	
 			}
+			if($state["face"]["eyebrows"] !== null){
+				paintArray($f, "face_eyebrows_" . getAsset("face_blush"), $state["size"], $center);	
+			}
 		}
 		
 		if($state["effect"] !== null){
-			$value = $state[$state["effect"]];
+			$value = $effects[$state["effect"]];
 			if($value["shuffle"]){
-				$assets = $value["data"][mt_rand(0, count($value["data"]))];
+				$assets = $value["data"][mt_rand(0, count($value["data"]) - 1)];
 			}else{
 				$assets = $value["data"][$animationStage % count($value["data"])];
 			}
@@ -313,6 +319,10 @@ function composeDonut(Framebuffer $f, $state, $animationStage){
 			foreach($assets as $asset){
 				paintArray($f, getAsset($asset), $state["size"], $center);
 			}
+		}
+	
+		if($state["dialog"] !== null){
+			writeAreaCencer($f, $f->getColor(Framebuffer::COLOR_WHITE), $f->getColor(Framebuffer::COLOR_BLACK), $state["dialog"], 220, 1);		
 		}
 	}
 }
@@ -353,11 +363,15 @@ while(true){
 		
 		$state["size"]++;
 		if($state["size"] > 4){
+			if($state["face"]["blush"]){
+				$state["dialog"] = "please be gentle senpai~~";				
+			}
 			$state["size"] = 4;
 			$state["nib_stage"]++;
 			if($state["nib_stage"] > 3){
 				$state["size"] = 1;
 				$state["nib_stage"] = 0;
+				$state["dialog"] = null;
 			}
 		}
 		$lastTouch = null;
@@ -369,7 +383,7 @@ while(true){
 		$f->fill($b, $touch[0] - 2, $touch[1] - 2, $touch[0] + 2, $touch[1] + 2);
 	}
 	
-	writeAreaCencer($f, $w, $b, "be gentle senpai", 200, 1);
+	
 	$f->flush();
 	
 
