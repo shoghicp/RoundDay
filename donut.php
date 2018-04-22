@@ -561,7 +561,7 @@ function composeDonut(Framebuffer $f, $state, $animationStage, $center = true){
 		if($state["dialog"] !== null){
 			writeAreaCenter($f, $f->getColor(Framebuffer::COLOR_WHITE), $f->getColor(Framebuffer::COLOR_BLACK), $state["dialog"], 220, 1);		
 		}
-		if($center){
+		if($center === true){
 			writeArea($f, $f->getColor(Framebuffer::COLOR_WHITE), $f->getColor(Framebuffer::COLOR_BLACK), (string)$state["happiness"], 5, 30, 2);	
 		}
 		return $area;
