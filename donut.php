@@ -195,13 +195,15 @@ $state = [
 		"hidden" => false,
 		"level" => 3, //1, 2, 3, 4, 5
 		"blush" => true,
-		"eyes" => "middle_up", // <middle|left|right>_<up|down>
+		"eyes" => "middle_up", // <left|middle|right>_<up|middle|down>
 	],
 	
 	"toppings" => [
 		"cover" => "icing_pink", // null, choco_dark, choco_milk, icing_pink
 		"sprinkles" => "color", // null, choco, color
 	],
+	
+	"dialog" => null, // TODO: heart, ???
 ];
 
 $assets = [];
@@ -259,10 +261,12 @@ while(true){
 			$face = "right_";
 		}
 		
-		if($touch[1] < ($f->getY() / 2)){
-			$face .= "up";
+		if($touch[1] < ($f->getY() / 3)){
+			$face = "up";
+		}else if($touch[1] < ($f->getY() / 3) * 2){
+			$face = "middle";
 		}else{
-			$face .= "down";
+			$face = "down";
 		}
 		
 		$state["face"]["eyes"] = $face;
