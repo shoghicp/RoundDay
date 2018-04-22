@@ -2,6 +2,8 @@
 
 include("Framebuffer.php");
 
+$version = "v0.1";
+
 $touchscreen = null;
 
 function getPicture($out, $delay = " --delay 2 "){
@@ -638,6 +640,7 @@ $stages = [
 $currentStage = 0;
 
 paintArray($f, getAsset("intro"));
+writeArea($f, $f->getColor(Framebuffer::COLOR_WHITE), $f->getColor(Framebuffer::COLOR_BLACK), $version, 280, 230, 1);	
 $f->flush();
 
 readTouchEvent($f);
@@ -865,7 +868,7 @@ do{
 	}
 	
 	$f->fill($f->getColor(Framebuffer::COLOR_WHITE), 0, 0, $f->getX(), $f->getY());
-	writeAreaCenter($f, $f->getColor(Framebuffer::COLOR_WHITE), $f->getColor(Framebuffer::COLOR_BLACK), "Happiness", 60, 4);	
+	writeAreaCenter($f, $f->getColor(Framebuffer::COLOR_WHITE), $f->getColor(Framebuffer::COLOR_BLACK), "Happiness", 60, 4);
 	writeAreaCenter($f, $f->getColor(Framebuffer::COLOR_WHITE), $f->getColor(Framebuffer::COLOR_BLACK), (string)$state["happiness"], 100, 5);
 	$f->flush();
 	
