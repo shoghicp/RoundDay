@@ -613,7 +613,7 @@ function alterDonutState($action, &$state, $stage){
 		$state["happiness"] += mt_rand(-5, 5);
 	}
 	
-	if($action === "eat"){
+	if($action === "consumed"){
 		if($stage["blush_when_eaten"]){
 			$state["face"]["blush"] = true;
 		}
@@ -766,7 +766,7 @@ do{
 				}else if($state["size"] >= min($stage["max_age"], 3) and $lastTouch[0] < 64 and $lastTouch[0] > 10){
 					//EAT
 					$state["nib_stage"]++;
-					alterDonutState("eat", $state, $stage);
+					alterDonutState("consumed", $state, $stage);
 				}else if($state["size"] >= min($stage["max_age"], 3) and $state["nib_stage"] === 0 and $lastTouch[0] < 210 and $lastTouch[0] > 80){
 					//DECORATE
 					$f->fill($f->getColor(Framebuffer::COLOR_WHITE), 0, 0, $f->getX(), $f->getY());
