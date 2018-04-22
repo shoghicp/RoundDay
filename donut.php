@@ -304,7 +304,7 @@ function composeDonut(Framebuffer $f, $state, $animationStage){
 				paintArray($f, getAsset("face_blush"), $state["size"], $center);	
 			}
 			if($state["face"]["eyebrows"] !== null){
-				paintArray($f, "face_eyebrows_" . getAsset("face_blush"), $state["size"], $center);	
+				paintArray($f, getAsset("face_eyebrows_" . $state["face"]["eyebrows"]), $state["size"], $center);	
 			}
 		}
 		
