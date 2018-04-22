@@ -262,11 +262,11 @@ while(true){
 		}
 		
 		if($touch[1] < ($f->getY() / 3)){
-			$face = "up";
+			$face .= "up";
 		}else if($touch[1] < ($f->getY() / 3) * 2){
-			$face = "middle";
+			$face .= "middle";
 		}else{
-			$face = "down";
+			$face .= "down";
 		}
 		
 		$state["face"]["eyes"] = $face;
