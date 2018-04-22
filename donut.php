@@ -695,6 +695,12 @@ do{
 
 	$dialogs = explode("\n", $stage["description"]);
 	foreach($dialogs as $d){
+		if(isK2Pressed() and isK3Pressed()){
+			exec("con2fbmap 1 2");
+			exec("chvt 1");
+			exec("poweroff");
+			exit();
+		}
 		if(isK3Pressed()){
 			exit();
 		}
