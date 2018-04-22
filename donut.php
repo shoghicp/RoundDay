@@ -24,6 +24,13 @@ function initScreen(){
 	exec("modprobe fbtft_device name=odroidc_tft32 rotate=270 gpios=reset:116,dc:115 speed=32000000 cs=0");
 	exec("modprobe ads7846");
 	
+	
+	sleep(2);
+	
+	while(!file_exists("/dev/input/touchscreen")){
+		sleep(2);
+	}
+	
 	$touchscreen = fopen("/dev/input/touchscreen", "r");
 	stream_set_blocking($touchscreen, 0);
 }
