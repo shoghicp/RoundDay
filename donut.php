@@ -93,12 +93,12 @@ function initGPIO(){
 	file_put_contents("/sys/class/gpio/export", "104\n");
 }
 
-function isK2Pressed(){
-	return file_get_contents("/sys/devices/virtual/gpio/gpio102/value") == "1";
+function isK3Pressed(){
+	return trim(file_get_contents("/sys/devices/virtual/gpio/gpio102/value")) == "0";
 }
 
-function isK3Pressed(){
-	return file_get_contents("/sys/devices/virtual/gpio/gpio104/value") == "1";
+function isK2Pressed(){
+	return trim(file_get_contents("/sys/devices/virtual/gpio/gpio104/value")) == "0";
 }
 
 //$f->setInstant(true);
