@@ -695,6 +695,9 @@ do{
 
 	$dialogs = explode("\n", $stage["description"]);
 	foreach($dialogs as $d){
+		if(isK3Pressed()){
+			exit();
+		}
 		if(trim($d) === ""){
 			continue;
 		}
