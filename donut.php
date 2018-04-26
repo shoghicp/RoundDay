@@ -2,7 +2,7 @@
 
 include("Framebuffer.php");
 
-$version = "v0.2";
+$version = "v0.3";
 
 $touchscreen = null;
 
@@ -583,7 +583,8 @@ function alterDonutState($action, &$state, $stage){
 	if(in_array($action, $stage["loves"])){
 		$state["face"]["level"] = max($stage["min_face"], min($stage["max_face"], $state["face"]["level"] + 1));
 		if(count($stage["phrases"]["loves"]) > 0){
-			$state["dialog"] = $stage["phrases"]["loves"][mt_rand(0, count($stage["phrases"]["loves"]) - 1)];
+			$state["dialog"] = $stage["phrases"]["loves"][$state["text_tick"] % count($stage["phrases"]["loves"])];
+			++$state["text_tick"];
 		}
 		
 		if($stage["blush_when_loved"]){
@@ -596,7 +597,8 @@ function alterDonutState($action, &$state, $stage){
 	}else if(in_array($action, $stage["hates"])){
 		$state["face"]["level"] = max($stage["min_face"], min($stage["max_face"], $state["face"]["level"] - 1));
 		if(count($stage["phrases"]["hates"]) > 0 and $lastTick !== $state["current_tick"]){
-			$state["dialog"] = $stage["phrases"]["hates"][mt_rand(0, count($stage["phrases"]["hates"]) - 1)];
+			$state["dialog"] = $stage["phrases"]["hates"][$state["text_tick"] % count($stage["phrases"]["hates"])];
+			++$state["text_tick"];
 		}
 		
 		if($stage["hearts_when_loved"] and $lastTick !== $state["current_tick"]){
@@ -608,7 +610,8 @@ function alterDonutState($action, &$state, $stage){
 		$state["happiness"] -= 15;
 	}else if ($lastTick !== $state["current_tick"] and $lastTick !== $state["current_tick"]){
 		if(count($stage["phrases"]["neutral"]) > 0){
-			$state["dialog"] = $stage["phrases"]["neutral"][mt_rand(0, count($stage["phrases"]["neutral"]) - 1)];
+			$state["dialog"] = $stage["phrases"]["neutral"][$state["text_tick"] % count($stage["phrases"]["neutral"])];
+			++$state["text_tick"];
 		}
 		$state["happiness"] += mt_rand(-5, 5);
 	}
@@ -618,7 +621,8 @@ function alterDonutState($action, &$state, $stage){
 			$state["face"]["blush"] = true;
 		}
 		if(count($stage["phrases"]["eat"]) > 0){
-			$state["dialog"] = $stage["phrases"]["eat"][mt_rand(0, count($stage["phrases"]["eat"]) - 1)];
+			$state["dialog"] = $stage["phrases"]["eat"][$state["text_tick"] % count($stage["phrases"]["eat"])];
+			++$state["text_tick"];
 		}
 	}
 	
@@ -673,6 +677,7 @@ do{
 	
 	$state = [
 		"current_tick" => 0,
+		"text_tick" => mt_rand(10000, 90000),
 		"size" => 1, // 1, 2, 3, 4
 		"nib_stage" => 0, //0, 1, 2, 3
 		"happiness" => 0,
