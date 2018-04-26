@@ -412,9 +412,11 @@ function generateDonutFeelings($validLikes, $validActs, $name = ""){
 		$phrases["hates"][] = "You are not helping";
 		
 		$phrases["neutral"][] = "Life is hard";
+		$phrases["neutral"][] = "I'm just trying to disappear";
 		
 		$phrases["eat"][] = "Make it fast";
 		$phrases["eat"][] = "Please end my suffering";
+		$phrases["eat"][] = "Life was worth just for the end";
 		
 		$phrase = "Has seen better days.";
 	}
