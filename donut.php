@@ -648,8 +648,12 @@ function alterDonutState($action, &$state, $stage){
 $lastTick = 0;
 $ticksPerSecond = 5;
 
-
 $stages = [
+	0 => generateDonutFeelings($validLikes, ["kuudere"], "Rei")
+	1 => generateDonutFeelings($validLikes, ["dandere"], "Mio")
+	2 => generateDonutFeelings($validLikes, ["depressed"], "Marvin")
+	3 => generateDonutFeelings($validLikes, ["tsundere"], "Asuka")
+	4 => generateDonutFeelings($validLikes, ["deredere"])
 	//0 => generateDonutFeelings($validLikes, [null], $name = "Donut-san")
 ];
 
