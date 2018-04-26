@@ -304,6 +304,7 @@ function generateDonutFeelings($validLikes, $validActs, $name = ""){
 	$maxFace = 5;
 	$minFace = 1;
 	$eyebrows = null;
+	$phrase = null;
 	
 	if($act === "tsundere"){
 		//abuse when they like, embarrased when like?
@@ -326,6 +327,8 @@ function generateDonutFeelings($validLikes, $validActs, $name = ""){
 		$phrases["eat"][] = "Too close... senpai";
 		$phrases["eat"][] = "Stop... it!";
 		
+		$phrase = "Looks angry at you for some reason.";
+		
 	}else if($act === "kuudere"){
 		//serious, neutral, but still caring
 		$startFace = 2;
@@ -343,6 +346,9 @@ function generateDonutFeelings($validLikes, $validActs, $name = ""){
 		
 		$phrases["eat"][] = "That's fine";
 		$phrases["eat"][] = "Are you done already?";
+		
+		$phrase = "Looks cold, hard, and crunchy.";
+		
 	}else if($act === "deredere"){
 		//all loving and caring
 		$startFace = mt_rand(3, 4);
@@ -364,6 +370,8 @@ function generateDonutFeelings($validLikes, $validActs, $name = ""){
 		$phrases["eat"][] = "Finally you decided";
 		$phrases["eat"][] = "Please make me yours";
 		$phrases["eat"][] = "I like you being so decisive";
+		
+		$phrase = "It already likes you. Too much.";
 	}else if($act === "dandere"){
 		//shy, opens up to the right person
 		$startFace = mt_rand(2, 3);
@@ -383,6 +391,9 @@ function generateDonutFeelings($validLikes, $validActs, $name = ""){
 		
 		$phrases["eat"][] = "Please be gentle senpai~~";
 		$phrases["eat"][] = "Ah! That's too hard...";
+		
+		$phrase = "Soft and hot on the inside.";
+		
 	}else if($act === "depressed"){
 		// :(
 		$startFace = mt_rand(1, 2);
@@ -402,6 +413,8 @@ function generateDonutFeelings($validLikes, $validActs, $name = ""){
 		
 		$phrases["eat"][] = "Make it fast";
 		$phrases["eat"][] = "Please end my suffering";
+		
+		$phrase = "Has seen better days.";
 	}
 	
 	for($i = 0; $i < $lovesCount; ++$i){
@@ -474,10 +487,9 @@ function generateDonutFeelings($validLikes, $validActs, $name = ""){
 	}
 	
 	
-	if($hearts){
-		$description .= "It already likes you.\n";
-	}else if($blushWhenLove){
-		$description .= "Might blush quite easily.\n";
+	if($phrase !== null){
+		$description .= "$phrase\n";
+		
 	}
 	
 	
