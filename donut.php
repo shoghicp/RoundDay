@@ -2,7 +2,7 @@
 
 include("Framebuffer.php");
 
-$version = "v0.3";
+$version = "v0.4";
 
 $touchscreen = null;
 
