@@ -319,9 +319,11 @@ function generateDonutFeelings($validLikes, $validActs, $name = ""){
 		$phrases["loves"][] = "Don't get the wrong idea!";
 		$phrases["loves"][] = "It's not like I hate you...";
 		
-		$phrases["hates"][] = "Senpai never notices me!";
+		$phrases["hates"][] = "EEEEH?";
+		$phrases["hates"][] = "How disgusting";
 		
 		$phrases["neutral"][] = "Go away!";
+		$phrases["hates"][] = "Senpai never notices me!";
 		$phrases["neutral"][] = "Why are you so annoying";
 		
 		$phrases["eat"][] = "Too close... senpai";
@@ -392,7 +394,7 @@ function generateDonutFeelings($validLikes, $validActs, $name = ""){
 		$phrases["eat"][] = "Please be gentle senpai~~";
 		$phrases["eat"][] = "Ah! That's too hard...";
 		
-		$phrase = "Soft and hot on the inside.";
+		$phrase = "Feels soft and warm on the inside.";
 		
 	}else if($act === "depressed"){
 		// :(
