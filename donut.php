@@ -764,7 +764,7 @@ do{
 			//We selected
 			if($lastTouch[1] < 30){
 				//buttons!
-				if($state["size"] < $stage["max_age"] and $lastTouch[0] < 300 and $lastTouch[0] > 240){
+				if($state["size"] < $stage["max_age"] and $state["nib_stage"] === 0 and $lastTouch[0] < 300 and $lastTouch[0] > 240){
 					//GROW
 					$state["size"]++;
 					alterDonutState("grow", $state, $stage);
@@ -852,7 +852,7 @@ do{
 		
 		$petArea = composeDonut($f, $state, $animationStage);
 		
-		if($state["size"] < $stage["max_age"]){
+		if($state["size"] < $stage["max_age"] and $state["nib_stage"] === 0){
 			writeArea($f, $f->getColor(Framebuffer::COLOR_ORANGE), $f->getColor(Framebuffer::COLOR_BLACK), "GROW", 240, 5, 2);			
 		}
 		//Let's not eat minors
